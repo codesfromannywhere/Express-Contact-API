@@ -1,4 +1,5 @@
 import express from "express";
+import { write } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 
 // 
@@ -45,6 +46,9 @@ const readTheFile = async () => {
 app.get("/contacts", async (req, res) => {
 
     const [error, data] = await readTheFile();
+
+    await writeFile('contacts.json', JSON.stringify(data, null, 2))
+
     res.send(data);
 
     if (error) {
@@ -62,6 +66,8 @@ app.get("/contacts/:id", async (req, res) => {
     const filterID = data.filter((elt) => {
         return elt.id === Number(req.params.id)
     })
+    await writeFile('contacts.json', JSON.stringify(data, null, 2))
+
     res.send(filterID);
 
     if (error) {
@@ -81,6 +87,7 @@ app.post("/contacts", async (req, res) => {
     let newContact = req.body;
     // newContact.id = data[data.lenght - 1].id + 1 
     data.push(newContact)
+    await writeFile('contacts.json', JSON.stringify(data, null, 2))
 
     res.send({ message: "Thanks for your data", result: data });
 
@@ -105,6 +112,8 @@ app.put("/contacts/:id", async (req, res) => {
     })
     data[index] = addContact
 
+    await writeFile('contacts.json', JSON.stringify(data, null, 2))
+
     res.send(data);
 
     if (error) {
@@ -117,10 +126,26 @@ app.put("/contacts/:id", async (req, res) => {
 
 
 //             ==========  Delete Data   ==========
+// 
 
-app.delete("/contacts/:id", async (req, res) => {
+app.delete('/contacts/:id', async (req, res) => {
+    const [error, data] = await readTheFile();
+    let contactID = req.params.id;
+    const index = data.findIndex((elt) => {
+        return elt.id === Number(contactID)
+    })
+    data.splice(index, 1)
 
+    await writeFile('contacts.json', JSON.stringify(data, null, 2))
+    res.send(data);
+
+    // res.send("DELETE Request Called");
+
+    if (error) {
+        return res.status(500).send("Failed to connect to Database, try later!");
+    }
 
 })
+
 
 
